@@ -8,5 +8,5 @@ __pycache__/
 db.sqlite3
 
 # Node
-node-api/node_modules/
-node-api/.env
+node-backend/node_modules/
+node-backend/.env
