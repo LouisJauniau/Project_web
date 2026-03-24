@@ -1,6 +1,9 @@
 # Venv
 .venv/
 
+# Python
+__pycache__/
+
 # Sqlite
 db.sqlite3
 
