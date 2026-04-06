@@ -1,3 +1,5 @@
+from typing import Any, Mapping, cast
+
 from django.contrib.auth import authenticate, get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
@@ -30,11 +32,12 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        validated_data = cast(Mapping[str, Any], serializer.validated_data)
 
         user = authenticate(
             request,
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password'],
+            username=cast(str, validated_data['username']),
+            password=cast(str, validated_data['password']),
         )
 
         if not user:
@@ -65,10 +68,11 @@ class SignupView(APIView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        validated_data = cast(Mapping[str, Any], serializer.validated_data)
 
         user = User.objects.create_user(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password'],
+            username=cast(str, validated_data['username']),
+            password=cast(str, validated_data['password']),
             is_staff=False,
         )
         token, _ = Token.objects.get_or_create(user=user)
@@ -85,11 +89,12 @@ class UserListView(APIView):
     def post(self, request):
         serializer = AdminUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        validated_data = cast(Mapping[str, Any], serializer.validated_data)
 
         user = User.objects.create_user(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password'],
-            is_staff=serializer.validated_data.get('is_staff', False),
+            username=cast(str, validated_data['username']),
+            password=cast(str, validated_data['password']),
+            is_staff=cast(bool, validated_data.get('is_staff', False)),
         )
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
