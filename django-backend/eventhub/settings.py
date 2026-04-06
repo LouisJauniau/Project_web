@@ -32,6 +32,14 @@ SECRET_KEY = os.getenv('SECRET_KEY') if not DEBUG else 'your-django-secret-key'
 # SECURITY WARNING: define the correct hosts in production!
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if not DEBUG else ["localhost", "127.0.0.1"]
 
+# Render sets this environment variable to the public hostname of the app. Use it to automatically add the Render URL to allowed hosts if provided
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# CORS settings
+CSRF_TRUSTED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if not DEBUG else []
+
 # SECURITY WARNING: set these to strong values in production!
 SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME') if not DEBUG else 'admin'
 SUPERADMIN_PASSWORD = os.getenv('SUPERADMIN_PASSWORD') if not DEBUG else 'admin12345'
