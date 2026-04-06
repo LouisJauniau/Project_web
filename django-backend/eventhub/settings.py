@@ -37,8 +37,8 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# CORS settings
-CSRF_TRUSTED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if not DEBUG else []
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split('') if not DEBUG else []
 
 # SECURITY WARNING: set these to strong values in production!
 SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME') if not DEBUG else 'admin'
