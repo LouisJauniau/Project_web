@@ -1,15 +1,47 @@
 from pathlib import Path
 import os
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-eventhub-dev-key')
-DEBUG = os.getenv('DEBUG', '1') == '1'
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
-    if host.strip()
-]
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
+
+# Helper functions to read environment variables with type conversion and defaults
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f'Environment variable {name} must be an integer.') from exc
+
+
+def env_list(name: str, default: str = '') -> list[str]:
+    value = os.getenv(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+# Most important env variables. Use DEBUG=1 for local development
+DEBUG = env_bool('DEBUG', default=True)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        # If no SECRET_KEY is provided in development, use a default one
+        SECRET_KEY = 'django-insecure-eventhub-dev-key'
+    else:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG is False.')
+
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1' if DEBUG else '')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,7 +104,27 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env_bool('CORS_ALLOW_ALL_ORIGINS', default=DEBUG)
+CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS')
+
+SECURE_HSTS_SECONDS = env_int('SECURE_HSTS_SECONDS', 31536000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=not DEBUG)
+SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', default=not DEBUG)
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', default=not DEBUG)
+
+# In local development, runserver is HTTP-only.
+if DEBUG:
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    if env_bool('USE_X_FORWARDED_PROTO', default=True):
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -83,6 +135,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME', 'admin')
-SUPERADMIN_PASSWORD = os.getenv('SUPERADMIN_PASSWORD', 'admin12345')
-SUPERADMIN_EMAIL = os.getenv('SUPERADMIN_EMAIL', 'admin@example.com')
+SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME')
+SUPERADMIN_PASSWORD = os.getenv('SUPERADMIN_PASSWORD')
+SUPERADMIN_EMAIL = os.getenv('SUPERADMIN_EMAIL')
