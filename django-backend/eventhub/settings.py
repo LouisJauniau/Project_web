@@ -56,6 +56,7 @@ else:
     CORS_ALLOWED_ORIGINS = ["https://eventhub-website.netlify.app"]
 
 # SECURITY WARNING: set these to strong values in production!
+# In development, fallback defaults keep first-run setup simple.
 SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME') if not DEBUG else 'admin'
 SUPERADMIN_PASSWORD = os.getenv('SUPERADMIN_PASSWORD') if not DEBUG else 'admin12345'
 
@@ -105,6 +106,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'eventhub.wsgi.application'
+
+REST_FRAMEWORK = {
+    # The frontend sends `Authorization: Token <key>`, so token auth must be enabled.
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 
 # Database
