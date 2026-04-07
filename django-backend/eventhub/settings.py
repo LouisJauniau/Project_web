@@ -48,6 +48,13 @@ CSRF_TRUSTED_ORIGINS = [
     if value.strip()
 ] if not DEBUG else []
 
+# CORS settings
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = ["https://eventhub-website.netlify.app"]
+
 # SECURITY WARNING: set these to strong values in production!
 SUPERADMIN_USERNAME = os.getenv('SUPERADMIN_USERNAME') if not DEBUG else 'admin'
 SUPERADMIN_PASSWORD = os.getenv('SUPERADMIN_PASSWORD') if not DEBUG else 'admin12345'
