@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -77,7 +78,10 @@ class SignupSerializer(serializers.Serializer):
         if password != password_confirmation:
             raise serializers.ValidationError({'password_confirmation': 'Passwords do not match.'})
 
-        validate_password(password)
+        try:
+            validate_password(password)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError({'password': list(exc.messages)})
         return attrs
 
 

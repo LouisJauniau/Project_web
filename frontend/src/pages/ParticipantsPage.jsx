@@ -45,8 +45,10 @@ export default function ParticipantsPage() {
   }
 
   // Fetch participants, registrations, and users (if admin) in parallel
-  const fetchParticipants = useCallback(async () => {
-    setLoading(true)
+  const fetchParticipants = useCallback(async ({ showLoader = true } = {}) => {
+    if (showLoader) {
+      setLoading(true)
+    }
     setFetchError('')
 
     try {
@@ -65,7 +67,9 @@ export default function ParticipantsPage() {
     } catch (err) {
       setFetchError(extractError(err, 'Failed to load participants.'))
     } finally {
-      setLoading(false)
+      if (showLoader) {
+        setLoading(false)
+      }
     }
   }, [user?.is_staff])
 
@@ -117,7 +121,7 @@ export default function ParticipantsPage() {
     try {
       await api.post(`/auth/users/${userId}/promote/`)
       // Refresh users and participants
-      await fetchParticipants()
+      await fetchParticipants({ showLoader: false })
     } catch (err) {
       setActionError(extractError(err, 'Could not promote user.'))
     } finally {
@@ -132,7 +136,7 @@ export default function ParticipantsPage() {
     try {
       await api.delete(`/auth/users/${userId}/`)
       // Refresh users and participants
-      await fetchParticipants()
+      await fetchParticipants({ showLoader: false })
     } catch (err) {
       setActionError(extractError(err, 'Could not delete user.'))
     } finally {
@@ -227,7 +231,7 @@ export default function ParticipantsPage() {
       })
 
       setUserForm({ username: '', email: '', password: '', role: 'viewer' })
-      await fetchParticipants()
+      await fetchParticipants({ showLoader: false })
     } catch (err) {
       setActionError(extractError(err, 'Could not create user.'))
     } finally {

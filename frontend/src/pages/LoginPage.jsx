@@ -15,6 +15,26 @@ export default function LoginPage() {
   const location = useLocation()
   const redirectTo = location.state?.from?.pathname || '/dashboard'
 
+  const extractError = (err, fallback) => {
+    const data = err?.response?.data
+    if (typeof data?.error === 'string') return data.error
+    if (typeof data?.detail === 'string') return data.detail
+    if (Array.isArray(data?.non_field_errors) && data.non_field_errors[0]) return data.non_field_errors[0]
+    if (Array.isArray(data?.password) && data.password[0]) return data.password[0]
+    if (Array.isArray(data?.password_confirmation) && data.password_confirmation[0]) return data.password_confirmation[0]
+    if (Array.isArray(data?.username) && data.username[0]) return data.username[0]
+
+    if (data && typeof data === 'object') {
+      for (const value of Object.values(data)) {
+        if (Array.isArray(value) && value[0]) return value[0]
+        if (typeof value === 'string') return value
+      }
+    }
+
+    if (typeof err?.message === 'string' && err.message) return err.message
+    return fallback
+  }
+
   // Redirect to intended page if already authenticated, otherwise show login/signup form
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />
@@ -38,13 +58,7 @@ export default function LoginPage() {
       }
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          err.response?.data?.password_confirmation?.[0] ||
-          err.response?.data?.username?.[0] ||
-          err.response?.data?.password?.[0] ||
-          'Authentication failed.'
-      )
+      setError(extractError(err, 'Authentication failed.'))
     } finally {
       setLoading(false)
     }
